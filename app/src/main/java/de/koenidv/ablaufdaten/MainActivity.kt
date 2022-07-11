@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import de.koenidv.ablaufdaten.BottomSheets.showAsBottomSheet
 import de.koenidv.ablaufdaten.ui.theme.AblaufdatenTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
                             ExtendedFloatingActionButton(
                                 text = { Text("Scan") },
                                 icon = { Icon(Icons.Rounded.Add, null) },
-                                onClick = { /*TODO*/ })
+                                onClick = { showAsBottomSheet { CameraBottomSheet(applicationContext) } })
                         },
                         floatingActionButtonPosition = FabPosition.Center
                     ) {
