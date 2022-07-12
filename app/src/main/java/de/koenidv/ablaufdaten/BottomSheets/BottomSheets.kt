@@ -4,41 +4,20 @@ import android.app.Activity
 import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import kotlinx.coroutines.launch
 
-// Via https://proandroiddev.com/jetpack-compose-bottom-sheet-over-android-view-using-kotlin-extension-7fecfa8fe369
-
-// Extension for Activity
-fun Activity.showAsBottomSheet(content: @Composable (() -> Unit) -> Unit) {
-    val viewGroup = this.findViewById(android.R.id.content) as ViewGroup
-    addContentToView(viewGroup, content)
-}
-
-// Extension for Fragment
-/*fun Fragment.showAsBottomSheet(content: @Composable (() -> Unit) -> Unit) {
-    val viewGroup = requireActivity().findViewById(android.R.id.content) as ViewGroup
-    addContentToView(viewGroup, content)
-}*/
-
-// Helper method
-private fun addContentToView(
-    viewGroup: ViewGroup,
-    content: @Composable (() -> Unit) -> Unit
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BottomSheet(
+    sheetState: ModalBottomSheetState,
+    content: @Composable() (ColumnScope.() -> Unit)
 ) {
-    viewGroup.addView(
-        ComposeView(viewGroup.context).apply {
-            setContent {
-                BottomSheetWrapper(viewGroup, this, content)
-            }
-        }
-    )
+    ModalBottomSheetLayout(sheetState = sheetState, sheetContent = content) {}
 }
 
 @OptIn(ExperimentalMaterialApi::class)

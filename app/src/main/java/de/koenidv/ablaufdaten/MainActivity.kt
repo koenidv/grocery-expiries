@@ -1,25 +1,34 @@
 package de.koenidv.ablaufdaten
 
-import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import de.koenidv.ablaufdaten.BottomSheets.showAsBottomSheet
 import de.koenidv.ablaufdaten.ui.theme.AblaufdatenTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnsafeOptInUsageError")
-    @OptIn(ExperimentalMaterial3Api::class)
+
+    @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val coroutineScope = rememberCoroutineScope()
+            val scanner = remember { ScannerBottomSheet(applicationContext) }
+
             AblaufdatenTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -27,22 +36,23 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Scaffold(
-                        topBar = { LargeTopAppBar(title = { Text("Ablaufdaten") }) },
+                        topBar = { SmallTopAppBar(title = { Text("Ablaufdaten") }) },
                         floatingActionButton = {
                             ExtendedFloatingActionButton(
                                 text = { Text("Scan") },
                                 icon = { Icon(Icons.Rounded.Add, null) },
                                 onClick = {
-                                    showAsBottomSheet {
-                                        CameraBottomSheet(applicationContext) { result ->
-
-                                        }
+                                    coroutineScope.launch {
+                                        scanner.show()
                                     }
                                 })
                         },
                         floatingActionButtonPosition = FabPosition.Center
                     ) {
                         GroceriesList(padding = it)
+                        scanner.Scan { result ->
+                            Toast.makeText(applicationContext, result, Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
