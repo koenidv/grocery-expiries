@@ -2,6 +2,7 @@ package de.koenidv.ablaufdaten
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -30,15 +32,12 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import de.koenidv.ablaufdaten.BottomSheets.BottomSheet
+import de.koenidv.ablaufdaten.bottomsheets.BottomSheet
 
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnsafeOptInUsageError")
-class ScannerBottomSheet(
-    private val context: Context,
-) {
+class ScannerBottomSheet(private val context: Context) {
     private val sheetState = ModalBottomSheetState(ModalBottomSheetValue.Hidden)
-    private val camera = ProcessCameraProvider.getInstance(context)
 
     @Composable
     fun Scan(onScanned: (String) -> Unit) {
@@ -95,13 +94,14 @@ class ScannerBottomSheet(
         val executor = remember(context) { ContextCompat.getMainExecutor(context) }
         // ProcessCameraProvider#isBound doesn't work, so we use a flag to track if the camera is bound
         val cameraBound = remember { mutableStateOf(false) }
+        // A wrong code might be discovered if the camera is moving, remember the last 3 frames
+        var lastCodes = remember { mutableListOf<String>() }
 
         // Get the scanning client for specified code formats
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
                 Barcode.FORMAT_EAN_13,
-                Barcode.FORMAT_EAN_8,
-                Barcode.FORMAT_UPC_A
+                Barcode.FORMAT_EAN_8
             ).build()
         val scanner = BarcodeScanning.getClient(options)
 
@@ -110,9 +110,15 @@ class ScannerBottomSheet(
             it.setAnalyzer(executor) { imageProxy ->
                 processImageProxy(scanner, imageProxy) { result ->
                     if (result != null) {
-                        camera.unbindAll()
-                        cameraBound.value = false
-                        callback(result)
+                        if (lastCodes.size >= 3 && lastCodes.all { it == result }) {
+                            camera.unbindAll()
+                            cameraBound.value = false
+                            callback(result)
+                        } else {
+                            lastCodes = lastCodes.takeLast(2).plus(result).toMutableList()
+                        }
+                    } else {
+                        lastCodes.clear()
                     }
                 }
             }
@@ -151,6 +157,7 @@ class ScannerBottomSheet(
                 preview
             }
         )
+
     }
 
     @androidx.camera.core.ExperimentalGetImage
