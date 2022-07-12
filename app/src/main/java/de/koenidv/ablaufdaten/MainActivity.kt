@@ -1,5 +1,6 @@
 package de.koenidv.ablaufdaten
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +15,7 @@ import de.koenidv.ablaufdaten.BottomSheets.showAsBottomSheet
 import de.koenidv.ablaufdaten.ui.theme.AblaufdatenTheme
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("UnsafeOptInUsageError")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +32,13 @@ class MainActivity : ComponentActivity() {
                             ExtendedFloatingActionButton(
                                 text = { Text("Scan") },
                                 icon = { Icon(Icons.Rounded.Add, null) },
-                                onClick = { showAsBottomSheet { CameraBottomSheet(applicationContext) } })
+                                onClick = {
+                                    showAsBottomSheet {
+                                        CameraBottomSheet(applicationContext) { result ->
+
+                                        }
+                                    }
+                                })
                         },
                         floatingActionButtonPosition = FabPosition.Center
                     ) {
